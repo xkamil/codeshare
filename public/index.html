@@ -20,14 +20,10 @@
   const socket = window.io({query: {room}});
   const flask = new CodeFlask('#editor', {language: 'js', lineNumbers: true});
 
-  flask.onUpdate(newContent => {
-    socket.emit('update_content', newContent);
-  })
-
   socket.on('content_updated', newContent => {
-    if (flask.getCode() !== newContent) {
-      flask.updateCode(newContent);
-    }
-  })
+    flask.updateCode(newContent);
+  });
+
+  setInterval(() => socket.emit('update_content', flask.getCode()), 100);
 
 </script>
