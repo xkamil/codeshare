@@ -20,25 +20,17 @@ app.get('/:room', (req, res) => {
 
 
 io.on('connection', (socket) => {
-  let userRoom = null;
-
-  socket.on('join_room', (room) => {
-    userRoom = room;
-    console.log('user joined room ' + room);
-    socket.join(room);
-    socket.emit('content_updated', roomContent[userRoom] || '');
-  });
-
-  socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
+  const room = socket.handshake.query.room;
+  socket.join(room);
+  console.log(`user ${socket.id} joined room ${room}`);
+  socket.emit('content_updated', roomContent[room] || '');
 
   socket.on('update_content', (newContent) => {
-    const oldContent = roomContent[userRoom];
+    const oldContent = roomContent[room];
     if (newContent !== oldContent) {
-      console.log(`Content updated in room ${userRoom}`);
-      socket.to(userRoom).emit('content_updated', newContent);
-      roomContent[userRoom] = newContent;
+      console.log(`content updated by ${socket.id} in room ${room}`);
+      socket.to(room).emit('content_updated', newContent);
+      roomContent[room] = newContent;
     }
   });
 

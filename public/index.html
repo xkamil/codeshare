@@ -17,17 +17,17 @@
 
 <script>
   const room = window.location.pathname.replace("/", "");
-  const socket = window.io();
+  const socket = window.io({query: {room}});
   const flask = new CodeFlask('#editor', {language: 'js', lineNumbers: true});
 
-  socket.emit('join_room', room);
-
-  setInterval(
-    () => socket.emit('update_content', flask.getCode()), 100
-  );
+  flask.onUpdate(newContent => {
+    socket.emit('update_content', newContent);
+  })
 
   socket.on('content_updated', newContent => {
-    flask.updateCode(newContent);
+    if (flask.getCode() !== newContent) {
+      flask.updateCode(newContent);
+    }
   })
 
 </script>
