@@ -19,12 +19,23 @@
   const room = window.location.pathname.replace("/", "");
   const socket = window.io();
   const flask = new CodeFlask('#editor', {language: 'js', lineNumbers: true});
+  let needUpdate = false;
 
   socket.emit('join_room', room);
 
-  flask.onUpdate((content) => {
-    socket.emit('content_updated', content);
-  });
+  flask.onUpdate(newContent => {
+    needUpdate = true
+  })
+
+  setInterval(
+    () => {
+      if (needUpdate) {
+        socket.emit('content_updated', flask.getCode());
+        needUpdate = false;
+      }
+
+    }, 500
+  );
 
   socket.on('content_updated', newContent => {
     flask.updateCode(newContent);
