@@ -23,7 +23,7 @@
   socket.emit('join_room', room);
 
   setInterval(
-    () => socket.emit('content_updated', flask.getCode()), 500
+    () => socket.emit('update_content', flask.getCode()), 100
   );
 
   socket.on('content_updated', newContent => {

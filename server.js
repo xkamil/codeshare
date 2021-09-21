@@ -33,12 +33,12 @@ io.on('connection', (socket) => {
     console.log('user disconnected');
   });
 
-  socket.on('content_updated', (newContent) => {
+  socket.on('update_content', (newContent) => {
     const oldContent = roomContent[userRoom];
     if (newContent !== oldContent) {
       console.log(`Content updated in room ${userRoom}`);
-      roomContent[userRoom] = newContent;
       socket.to(userRoom).emit('content_updated', newContent);
+      roomContent[userRoom] = newContent;
     }
   });
 
