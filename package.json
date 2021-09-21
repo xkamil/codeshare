@@ -2,6 +2,9 @@
   "name": "codeshare",
   "version": "0.0.1",
   "description": "App to share code live",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "codeflask": "^1.4.1",
     "express": "^4.17.1",

@@ -6,7 +6,7 @@ const {Server} = require("socket.io");
 const {uuid} = require('uuidv4');
 
 const io = new Server(server);
-const port = 8080;
+const port = process.env.PORT || 8080;
 const roomContent = {};
 
 app.get('/', (req, res) => {
