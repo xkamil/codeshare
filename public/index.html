@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>codeshare</title>
+    <script src="script/codeflas.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="/">join new room</a>
+<div id="editor"></div>
+</body>
+
+
+</html>
+
+<script>
+  const room = window.location.pathname.replace("/", "");
+  const socket = window.io();
+  const flask = new CodeFlask('#editor', {language: 'js', lineNumbers: true});
+
+  socket.emit('join_room', room);
+
+  flask.onUpdate((content) => {
+    socket.emit('content_updated', content);
+  });
+
+  socket.on('content_updated', newContent => {
+    if (flask.getCode() !== newContent) {
+      flask.updateCode(newContent);
+    }
+  })
+
+</script>

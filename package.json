@@ -1,0 +1,11 @@
+{
+  "name": "codeshare",
+  "version": "0.0.1",
+  "description": "App to share code live",
+  "dependencies": {
+    "codeflask": "^1.4.1",
+    "express": "^4.17.1",
+    "socket.io": "^4.2.0",
+    "uuidv4": "^6.2.12"
+  }
+}
