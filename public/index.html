@@ -27,9 +27,7 @@
   });
 
   socket.on('content_updated', newContent => {
-    if (flask.getCode() !== newContent) {
-      flask.updateCode(newContent);
-    }
+    flask.updateCode(newContent);
   })
 
 </script>
