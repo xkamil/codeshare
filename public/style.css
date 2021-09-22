@@ -2,3 +2,11 @@
     width: 100vw;
     height: 100vh;
 }
+
+.editor-locked {
+    border: solid 3px #900;
+}
+
+.editor-unlocked {
+    border: solid 3px #090;
+}

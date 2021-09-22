@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>codeshare</title>
-    <script src="script/codeflas.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>codeshare</title>
+  <script src="script/codeflas.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<a href="/">join new room</a>
-<div id="editor"></div>
+<a href="/">new snippet</a>
+<div id="editor-frame" class="editor-locked">
+  <div id="editor"></div>
+</div>
 </body>
 
 
@@ -18,12 +20,49 @@
 <script>
   const room = window.location.pathname.replace("/", "");
   const socket = window.io({query: {room}});
-  const flask = new CodeFlask('#editor', {language: 'js', lineNumbers: true});
+  const editorFrame = document.getElementById('editor-frame');
+  const editor = new CodeFlask('#editor', {language: 'js', lineNumbers: true, readonly: true});
+
+  editorFrame.addEventListener('dblclick', e => {
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    console.log('double clicked');
+    socket.emit('grant-lock');
+  })
 
   socket.on('content_updated', newContent => {
-    flask.updateCode(newContent);
+    editor.updateCode(newContent);
   });
 
-  setInterval(() => socket.emit('update_content', flask.getCode()), 100);
+  socket.on('lock-granted', lockId => {
+    console.log('lock granted')
+    if (lockId === socket.id) {
+      editor.disableReadonlyMode();
+      editorFrame.className = 'editor-unlocked';
+    } else {
+      editor.enableReadonlyMode();
+      editorFrame.className = 'editor-locked';
+    }
+  });
+
+  editor.onUpdate(newContent => {
+    socket.emit('update_content', newContent);
+  })
 
 </script>
+
+<style>
+    #editor-frame {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+    }
+
+    .editor-locked {
+        border: solid 10px #C00;
+    }
+
+    .editor-unlocked {
+        border: solid 10px #090;
+    }
+</style>
