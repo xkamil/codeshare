@@ -5,7 +5,6 @@
   <title>codeshare</title>
   <script src="script/codeflas.min.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <a href="/">new snippet</a>
@@ -22,31 +21,35 @@
   const socket = window.io({query: {room}});
   const editorFrame = document.getElementById('editor-frame');
   const editor = new CodeFlask('#editor', {language: 'js', lineNumbers: true, readonly: true});
+  let lockGranted = false;
 
   editorFrame.addEventListener('dblclick', e => {
-    e.preventDefault()
-    e.stopImmediatePropagation()
-    console.log('double clicked');
-    socket.emit('grant-lock');
+    socket.emit('acquire-lock');
   })
 
-  socket.on('content_updated', newContent => {
+  socket.on('content-updated', newContent => {
     editor.updateCode(newContent);
   });
 
-  socket.on('lock-granted', lockId => {
-    console.log('lock granted')
+  socket.on('lock-updated', lockId => {
     if (lockId === socket.id) {
-      editor.disableReadonlyMode();
-      editorFrame.className = 'editor-unlocked';
+      fetch(`/${room}/latestContent`)
+      .then(response => response.json())
+      .then(latestContent => {
+        lockGranted = true;
+        editor.updateCode(latestContent);
+        editor.disableReadonlyMode();
+        editorFrame.className = 'editor-unlocked';
+      })
     } else {
+      lockGranted = false;
       editor.enableReadonlyMode();
       editorFrame.className = 'editor-locked';
     }
   });
 
   editor.onUpdate(newContent => {
-    socket.emit('update_content', newContent);
+    lockGranted && socket.emit('update-content', newContent);
   })
 
 </script>

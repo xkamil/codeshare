@@ -18,6 +18,11 @@ app.get('/:room', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 })
 
+app.get('/:room/latestContent', (req, res) => {
+  const room = req.params.room;
+  res.json(roomContent[room] || '');
+})
+
 io.on('connection', (socket) => {
   const room = socket.handshake.query.room;
   let lockId = null;
@@ -26,17 +31,16 @@ io.on('connection', (socket) => {
   console.log(`user ${socket.id} joined room ${room}`);
   socket.emit('content_updated', roomContent[room] || '');
 
-  socket.on('grant-lock', () => {
+  socket.on('acquire-lock', () => {
     lockId = socket.id;
-    io.in(room).emit('lock-granted', lockId);
+    io.in(room).emit('lock-updated', lockId);
     console.log(`room ${room} lock granted to ${lockId}`)
   });
 
-  socket.on('update_content', (newContent) => {
-    const oldContent = roomContent[room];
-    if (newContent !== oldContent && lockId === socket.id) {
+  socket.on('update-content', (newContent) => {
+    if (lockId === socket.id) {
       console.log(`content updated by ${socket.id} in room ${room}`);
-      socket.to(room).emit('content_updated', newContent);
+      socket.to(room).emit('content-updated', newContent);
       roomContent[room] = newContent;
     }
   });
