@@ -26,10 +26,8 @@ app.get('/:room/latestContent', (req, res) => {
 io.on('connection', (socket) => {
   const room = socket.handshake.query.room;
   let lockId = null;
-
   socket.join(room);
   console.log(`user ${socket.id} joined room ${room}`);
-  socket.emit('content_updated', roomContent[room] || '');
 
   socket.on('acquire-lock', () => {
     lockId = socket.id;

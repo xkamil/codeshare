@@ -21,10 +21,15 @@
   const socket = window.io({query: {room}});
   const editorFrame = document.getElementById('editor-frame');
   const editor = new CodeFlask('#editor', {language: 'js', lineNumbers: true, readonly: true});
-  let lockGranted = false;
 
   editorFrame.addEventListener('dblclick', e => {
     socket.emit('acquire-lock');
+  })
+
+  fetch(`/${room}/latestContent`)
+  .then(response => response.json())
+  .then(latestContent => {
+    editor.updateCode(latestContent);
   })
 
   socket.on('content-updated', newContent => {
@@ -36,20 +41,19 @@
       fetch(`/${room}/latestContent`)
       .then(response => response.json())
       .then(latestContent => {
-        lockGranted = true;
         editor.updateCode(latestContent);
         editor.disableReadonlyMode();
         editorFrame.className = 'editor-unlocked';
+        console.log('lock granted');
       })
     } else {
-      lockGranted = false;
       editor.enableReadonlyMode();
       editorFrame.className = 'editor-locked';
     }
   });
 
   editor.onUpdate(newContent => {
-    lockGranted && socket.emit('update-content', newContent);
+    socket.emit('update-content', newContent);
   })
 
 </script>
