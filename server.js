@@ -27,17 +27,18 @@ io.on('connection', (socket) => {
   const room = socket.handshake.query.room;
   let lockId = null;
   socket.join(room);
-  console.log(`user ${socket.id} joined room ${room}`);
+  log(`user ${socket.id} joined room ${room}`);
+
 
   socket.on('acquire-lock', () => {
     lockId = socket.id;
     io.in(room).emit('lock-updated', lockId);
-    console.log(`room ${room} lock granted to ${lockId}`)
+    log(`room ${room} lock granted to ${lockId}`)
   });
 
   socket.on('update-content', (newContent) => {
     if (lockId === socket.id) {
-      console.log(`content updated by ${socket.id} in room ${room}`);
+      log(`content updated by ${socket.id} in room ${room}`);
       socket.to(room).emit('content-updated', newContent);
       roomContent[room] = newContent;
     }
@@ -48,3 +49,7 @@ io.on('connection', (socket) => {
 app.use(express.static('public'));
 
 server.listen(port, () => console.log('listening on ' + port));
+
+function log(text){
+  console.log(`${new Date()} ${text}`)
+}
