@@ -10,7 +10,7 @@ const port = process.env.PORT || 8080;
 const roomContent = {};
 
 app.get('/', (req, res) => {
-  const newRoom = uuid().toLowerCase().substr(0, 5);
+  const newRoom = uuid().toLowerCase().substr(0, 7);
   res.redirect(`/${newRoom}`)
 })
 

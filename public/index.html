@@ -7,10 +7,26 @@
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-<a href="/">new snippet</a>
-<span id="editor-status"></span>
-<div id="editor-frame" class="editor-locked">
-    <div id="editor"></div>
+<div id="editor-wrapper">
+
+    <div id="top-bar-wrapper">
+        <span>
+            <a class="btn" href="/">new snippet</a>
+        </span>
+
+        <span>
+            <span id="edit-mode-btn" class="btn" onclick="acquireLock()">Enable edit mode</span>
+        </span>
+
+        <span>
+            <span id="editor-status"></span>
+        </span>
+
+    </div>
+
+    <div id="editor-frame" class="editor-locked">
+        <div id="editor"></div>
+    </div>
 </div>
 </body>
 
@@ -20,9 +36,12 @@
 <script>
   const room = window.location.pathname.replace("/", "");
   const socket = window.io({query: {room}});
-  const editorFrame = document.getElementById('editor-frame');
+  const editorFrameEl = document.getElementById('editor-frame');
+  const enableEditModeBtn = document.getElementById('edit-mode-btn');
+  const connectionStatusEl = document.getElementById('editor-status');
   const editor = new CodeFlask('#editor', {language: 'js', lineNumbers: true, readonly: true});
-  const editorStatus = document.getElementById('editor-status');
+
+  let editorEnabled = false;
 
   // Socket events
 
@@ -47,6 +66,7 @@
 
   socket.on('lock-updated', lockId => {
     if (lockId === socket.id) {
+      editorEnabled = true;
       enableEditMode();
       console.log('lock granted');
     } else {
@@ -56,31 +76,40 @@
 
   // Editor - events
 
-  editorFrame.addEventListener('dblclick', e => {
-    socket.emit('acquire-lock');
+  editorFrameEl.addEventListener('dblclick', e => {
+    acquireLock();
   })
 
   editor.onUpdate(newContent => {
-    socket.emit('update-content', newContent);
+    if (editorEnabled) {
+      socket.emit('update-content', newContent);
+    }
   })
 
   // Editor - functions
 
+  function acquireLock() {
+    socket.emit('acquire-lock');
+  }
+
   function enableEditMode() {
     editor.disableReadonlyMode();
-    editorFrame.className = 'editor-unlocked';
+    editorFrameEl.className = 'editor-unlocked';
+    enableEditModeBtn.style.visibility = 'hidden';
   }
 
   function disableEditMode() {
+    editorEnabled = false;
     editor.enableReadonlyMode();
-    editorFrame.className = 'editor-locked';
+    editorFrameEl.className = 'editor-locked';
+    enableEditModeBtn.style.visibility = 'visible';
   }
 
   function updateEditorStatus(newStatus) {
-    editorStatus.innerHTML = newStatus;
+    connectionStatusEl.innerHTML = newStatus;
   }
 
-  function updateContent(newContent){
+  function updateContent(newContent) {
     editor.code = newContent;
     editor.elTextarea.value = newContent;
     editor.elCode.innerHTML = escapeHtml(newContent);
@@ -113,25 +142,66 @@
       .then(response => response.json())
       .then(latestContent => {
         editor.updateCode(latestContent);
+        editorEnabled = true;
       })
   }
-
-
 
 </script>
 
 <style>
-    #editor-frame {
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Tahoma;
+        display: flex;
+        flex-direction: column;
         width: 100vw;
         height: 100vh;
+    }
+
+    #editor-wrapper {
+        padding: 10px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-content: stretch;
+    }
+
+    #editor-frame {
         position: relative;
+        flex-grow: 1;
+    }
+
+    #top-bar-wrapper {
+        padding: 5px 0 12px 0;
+        display: flex;
+        justify-content: space-between;
     }
 
     .editor-locked {
         border: solid 10px #C00;
+        border-radius: 4px;
     }
 
     .editor-unlocked {
         border: solid 10px #090;
+        border-radius: 4px;
     }
+
+    .btn {
+        text-decoration: none;
+        border: 1px solid #999;
+        border-radius: 4px;
+        padding: 5px 10px;
+        text-transform: uppercase;
+        font-weight: 400;
+        color: #000;
+        cursor: pointer;
+    }
+
+    .btn:hover {
+        background-color: #999;
+        color: #fff;
+    }
+
 </style>
