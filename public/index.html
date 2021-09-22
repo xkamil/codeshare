@@ -37,8 +37,7 @@
   });
 
   socket.on('content-updated', newContent => {
-    editor.elCode.innerHTML = newContent;
-    //editor.updateCode(newContent);
+    updateContent(newContent);
   });
 
   socket.on('disconnect', () => {
@@ -55,7 +54,7 @@
     }
   });
 
-  // Editor events
+  // Editor - events
 
   editorFrame.addEventListener('dblclick', e => {
     socket.emit('acquire-lock');
@@ -64,6 +63,8 @@
   editor.onUpdate(newContent => {
     socket.emit('update-content', newContent);
   })
+
+  // Editor - functions
 
   function enableEditMode() {
     editor.disableReadonlyMode();
@@ -75,6 +76,37 @@
     editorFrame.className = 'editor-locked';
   }
 
+  function updateEditorStatus(newStatus) {
+    editorStatus.innerHTML = newStatus;
+  }
+
+  function updateContent(newContent){
+    editor.code = newContent;
+    editor.elTextarea.value = newContent;
+    editor.elCode.innerHTML = escapeHtml(newContent);
+    editor.highlight();
+    editor.setLineNumber();
+  }
+
+  const entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+    "/": "&#x2F;",
+    "`": "&#x60;",
+    "=": "&#x3D;"
+  };
+
+  function escapeHtml(e) {
+    return String(e).replace(/[&<>"'`=/]/g, function (e) {
+      return entityMap[e]
+    })
+  }
+
+  // Api functions
+
   function getLatestContent() {
     fetch(`/${room}/latestContent`)
       .then(response => response.json())
@@ -83,9 +115,7 @@
       })
   }
 
-  function updateEditorStatus(newStatus) {
-    editorStatus.innerHTML = newStatus;
-  }
+
 
 </script>
 
