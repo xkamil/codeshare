@@ -9,6 +9,10 @@ const io = new Server(server);
 const port = process.env.PORT || 8080;
 const roomContent = {};
 
+app.get('/admin/health', (req,res)=>{
+  res.json('ok');
+})
+
 app.get('/', (req, res) => {
   const newRoom = uuid().toLowerCase().substr(0, 7);
   res.redirect(`/${newRoom}`)
