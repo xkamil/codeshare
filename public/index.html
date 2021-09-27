@@ -35,8 +35,8 @@
 </html>
 
 <script>
-  const room = window.location.pathname.replace("/", "");
-  const socket = window.io({query: {room}});
+  const snippetName = window.location.pathname.replace("/", "");
+  const socket = window.io({query: {snippetName: snippetName}});
   const statusBarEl = document.getElementById('status-bar');
   const enableEditModeBtn = document.getElementById('edit-mode-btn');
   const connectionStatusEl = document.getElementById('editor-status');
@@ -139,7 +139,7 @@
   // Api functions
 
   function getLatestContent() {
-    fetch(`/${room}/latestContent`)
+    fetch(`/${snippetName}/latestContent`)
       .then(response => response.json())
       .then(latestContent => {
         editor.updateCode(latestContent);

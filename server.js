@@ -1,50 +1,58 @@
 const express = require('express');
-const app = express();
 const http = require('http');
-const server = http.createServer(app);
 const {Server} = require("socket.io");
 const {uuid} = require('uuidv4');
+const snippetRepository = require('./snippetRepository.js');
 
+const app = express();
+const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 8080;
-const roomContent = {};
 
-app.get('/admin/health', (req,res)=>{
+snippetRepository.loadSnippetsFromDisc();
+setInterval(() => snippetRepository.saveSnippetsOnDisc(), 5000);
+
+app.get('/admin/health', (req, res) => {
   res.json('ok');
 })
 
-app.get('/', (req, res) => {
-  const newRoom = uuid().toLowerCase().substr(0, 7);
-  res.redirect(`/${newRoom}`)
+app.get('/admin/snippets', (req, res) => {
+  res.json(snippetRepository.getAllSnippets());
 })
 
-app.get('/:room', (req, res) => {
+app.get('/', (req, res) => {
+  const newSnippetName = uuid().toLowerCase().substr(0, 7);
+  res.redirect(`/${newSnippetName}`)
+})
+
+app.get('/:snippetName', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 })
 
-app.get('/:room/latestContent', (req, res) => {
-  const room = req.params.room;
-  res.json(roomContent[room] || '');
+app.get('/:snippetName/latestContent', (req, res) => {
+  const snippetName = req.params.snippetName;
+  const snippet = snippetRepository.getSnippet(snippetName)
+  const snippetContent = snippet ? snippet.content : '';
+  res.json(snippetContent);
 })
 
 io.on('connection', (socket) => {
-  const room = socket.handshake.query.room;
+  const snippetName = socket.handshake.query.snippetName;
   let lockId = null;
-  socket.join(room);
-  log(`user ${socket.id} joined room ${room}`);
-
+  socket.join(snippetName);
+  log(`user ${socket.id} joined snippet ${snippetName}`);
 
   socket.on('acquire-lock', () => {
     lockId = socket.id;
-    io.in(room).emit('lock-updated', lockId);
-    log(`room ${room} lock granted to ${lockId}`)
+    io.in(snippetName).emit('lock-updated', lockId);
+    log(`snippet ${snippetName} lock granted to ${lockId}`)
   });
 
   socket.on('update-content', (newContent) => {
     if (lockId === socket.id) {
-      log(`content updated by ${socket.id} in room ${room}`);
-      socket.to(room).emit('content-updated', newContent);
-      roomContent[room] = newContent;
+      log(`content updated by ${socket.id} in snippet ${snippetName}`);
+      snippetRepository.updateSnippet(snippetName, newContent);
+      socket.to(snippetName).emit('content-updated', newContent);
     }
   });
 
@@ -54,6 +62,6 @@ app.use(express.static(__dirname + '/public'));
 
 server.listen(port, () => console.log('listening on ' + port));
 
-function log(text){
+function log(text) {
   console.log(`${new Date()} ${text}`)
 }
