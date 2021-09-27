@@ -13,55 +13,50 @@ snippetRepository.loadSnippetsFromDisc();
 setInterval(() => snippetRepository.saveSnippetsOnDisc(), 5000);
 
 app.get('/admin/health', (req, res) => {
-  res.json('ok');
+    res.json('ok');
 })
 
 app.get('/admin/snippets', (req, res) => {
-  res.json(snippetRepository.getAllSnippets());
+    res.json(snippetRepository.getAllSnippets());
 })
 
 app.get('/', (req, res) => {
-  const newSnippetName = uuid().toLowerCase().substr(0, 7);
-  res.redirect(`/${newSnippetName}`)
+    const newSnippetName = uuid().toLowerCase().substr(0, 7);
+    res.redirect(`/${newSnippetName}`)
 })
 
 app.get('/:snippetName', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+    res.sendFile(__dirname + '/public/index.html');
 })
 
 app.get('/:snippetName/latestContent', (req, res) => {
-  const snippetName = req.params.snippetName;
-  const snippet = snippetRepository.getSnippet(snippetName)
-  const snippetContent = snippet ? snippet.content : '';
-  res.json(snippetContent);
+    const snippetName = req.params.snippetName;
+    res.json(snippetRepository.getSnippetContent(snippetName));
 })
 
+app.use(express.static(__dirname + '/public'));
+
 io.on('connection', (socket) => {
-  const snippetName = socket.handshake.query.snippetName;
-  let lockId = null;
-  socket.join(snippetName);
-  log(`user ${socket.id} joined snippet ${snippetName}`);
+    const snippetName = socket.handshake.query.snippetName;
+    let lockId = null;
+    socket.join(snippetName);
 
-  socket.on('acquire-lock', () => {
-    lockId = socket.id;
-    io.in(snippetName).emit('lock-updated', lockId);
-    log(`snippet ${snippetName} lock granted to ${lockId}`)
-  });
+    socket.on('acquire-lock', () => {
+        lockId = socket.id;
+        io.in(snippetName).emit('lock-updated', lockId);
+    });
 
-  socket.on('update-content', (newContent) => {
-    if (lockId === socket.id) {
-      log(`content updated by ${socket.id} in snippet ${snippetName}`);
-      snippetRepository.updateSnippet(snippetName, newContent);
-      socket.to(snippetName).emit('content-updated', newContent);
-    }
-  });
+    socket.on('update-content', (newContent) => {
+        if (lockId === socket.id) {
+            snippetRepository.updateSnippet(snippetName, newContent);
+            socket.to(snippetName).emit('content-updated', newContent);
+        }
+    });
 
 });
-
-app.use(express.static(__dirname + '/public'));
 
 server.listen(port, () => console.log('listening on ' + port));
 
 function log(text) {
-  console.log(`${new Date()} ${text}`)
+    console.log(`${new Date()} ${text}`)
 }

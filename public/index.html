@@ -22,7 +22,8 @@
     </div>
 
     <div id="status-bar">
-        Read mode
+        <b>READ-ONLY MODE</b>
+        <span> - only 1 user at a time can edit snippet. Click 'Enable edit mode' or double click on editor to acquire lock.</span>
     </div>
 
     <div id="editor-frame" class="shadow">
@@ -38,6 +39,7 @@
   const snippetName = window.location.pathname.replace("/", "");
   const socket = window.io({query: {snippetName: snippetName}});
   const statusBarEl = document.getElementById('status-bar');
+  const editorFrameEl = document.getElementById('editor-frame');
   const enableEditModeBtn = document.getElementById('edit-mode-btn');
   const connectionStatusEl = document.getElementById('editor-status');
   const editor = new CodeFlask('#editor', {language: 'js', lineNumbers: true, readonly: true});
@@ -77,7 +79,7 @@
 
   // Editor - events
 
-  statusBarEl.addEventListener('dblclick', e => {
+  editorFrameEl.addEventListener('dblclick', e => {
     acquireLock();
   })
 
