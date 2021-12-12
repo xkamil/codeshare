@@ -16,10 +16,8 @@ jobs:
       - name: Adding Known Hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
       - name: SSH to server
-        run: ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}
-      - name: Clone repository
-        run: rm -rf /tmp/codeshare && git clone https://github.com/xkamil/codeshare.git /tmp/codeshare
-      - name: stop previous app
-        run: docker-compose -f /tmp/codeshare/docker-compose.yml down
-      - name: deploy
-        run: nohup docker-compose -f /tmp/codeshare/docker-compose.yml up -d --build
+        run: >
+        ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} &&
+        rm -rf /tmp/codeshare && git clone https://github.com/xkamil/codeshare.git /tmp/codeshare &&
+        docker-compose -f /tmp/codeshare/docker-compose.yml down &&
+        nohup docker-compose -f /tmp/codeshare/docker-compose.yml up -d --build
