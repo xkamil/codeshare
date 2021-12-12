@@ -19,7 +19,9 @@ jobs:
         run: ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}
       - name: Clone repository
         run: rm -rf /tmp/codeshare && git clone https://github.com/xkamil/codeshare.git /tmp/codeshare
+      - name: stop previous app
+        run: docker-compose -f /tmp/codeshare/docker-compose.yml down
       - name: deploy
-        run: docker-compose -d -f /tmp/codeshare/docker-compose.yml up
+        run: docker-compose -f /tmp/codeshare/docker-compose.yml up -d
       - name: cleanup
         run: rm -rf /tmp/codeshare
