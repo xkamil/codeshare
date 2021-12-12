@@ -20,6 +20,6 @@ jobs:
       - name: Clone repository
         run: rm -rf /tmp/codeshare && git clone https://github.com/xkamil/codeshare.git /tmp/codeshare
       - name: deploy
-        run: docker-compose -d -f /tmp/codeshare/docker-compose.yml
+        run: docker-compose -d -f /tmp/codeshare/docker-compose.yml up
       - name: cleanup
         run: rm -rf /tmp/codeshare
