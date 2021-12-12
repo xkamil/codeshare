@@ -22,6 +22,4 @@ jobs:
       - name: stop previous app
         run: docker-compose -f /tmp/codeshare/docker-compose.yml down
       - name: deploy
-        run: docker-compose -f /tmp/codeshare/docker-compose.yml up -d
-      - name: cleanup
-        run: rm -rf /tmp/codeshare
+        run: nohup docker-compose -f /tmp/codeshare/docker-compose.yml up -d --build
