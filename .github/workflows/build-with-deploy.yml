@@ -1,5 +1,8 @@
 name: build-with-deploy
-on: [push]
+on:
+  push:
+    branches:
+      - master
 jobs:
   check-bats-version:
     runs-on: ubuntu-latest
@@ -8,4 +11,16 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - run: npm install -g bats
+      - run: npm install
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PERSONAL_SERVER_HOST }}
+          username: ${{ secrets.PERSONAL_SERVER_USERNAME }}
+          password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
+          port: 22
+          script: docker --version
