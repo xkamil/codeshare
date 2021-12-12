@@ -25,10 +25,10 @@ jobs:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
           SSH_HOST: ${{ secrets.SERVER_HOST }}
       - name: Remove previous repository
-        run: ssh staging rm -rf /tmp/codeshare
+        run: ssh staging rm -rf ~/apps/codeshare
       - name: Clone new repository
-        run: ssh staging git clone https://github.com/xkamil/codeshare.git /tmp/codeshare
+        run: ssh staging git clone https://github.com/xkamil/codeshare.git ~/apps/codeshare
       - name: stop previous app
-        run: ssh staging  docker-compose -f /tmp/codeshare/docker-compose.yml down
+        run: ssh staging  docker-compose -f ~/apps/codeshare/docker-compose.yml down
       - name: deploy
-        run: ssh staging  docker-compose -f /tmp/codeshare/docker-compose.yml up -d --build
+        run: ssh staging  docker-compose -f ~/apps/codeshare/docker-compose.yml up -d --build
